@@ -40,7 +40,8 @@ echo "▶ 住民向け証明書のルール（ロール）を作成"
 vault write pki/roles/citizen \
   allow_any_name=true \
   enforce_hostnames=false \
-  allowed_uri_sans="urn:mini-jlis:*" \
+   allowed_uri_sans="urn:mini-jlis:*" \
+  use_csr_sans=false \
   key_type=any \
   server_flag=false client_flag=true \
   max_ttl=720h
