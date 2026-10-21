@@ -3,6 +3,7 @@ package io.github.yuki652204.miniekyc.verify;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
@@ -67,8 +68,20 @@ public class CertificateVerifier {
      *   - 失効 → Reason.REVOKED
      */
     public void checkRevocation(X509Certificate cert) {
-        // TODO ②
-        throw new UnsupportedOperationException("TODO ②: checkRevocation を実装してください");
+        // 最新の掲示板をもらう
+        X509CRL crl = crlProvider.current();
+
+        // 掲示板そのものが、市役所の公印付きか？
+        try {
+            crl.verify(trustAnchor.getPublicKey());
+        } catch (GeneralSecurityException e) {
+            throw new VerificationException(Reason.UNTRUSTED_ISSUER, "失効リストが信頼するCAの署名ではありません", e);
+        }
+
+        // この証明書の番号が、掲示板に載っていないか？
+        if (crl.isRevoked(cert)) {
+            throw new VerificationException(Reason.REVOKED, "失効しています");
+        }
     }
 
     /**
