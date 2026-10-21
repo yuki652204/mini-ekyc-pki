@@ -1,0 +1,5 @@
+miniekyc:
+  # API が事前に持つ唯一のもの：ルートCAの証明書（印影見本）
+  trust-anchor-path: ${MINIEKYC_TRUST_ANCHOR_PATH:../trust/ca.crt}
+  # 失効リスト（CRL）の取得先。Vault が公開している
+  crl-url: ${MINIEKYC_CRL_URL:http://localhost:8200/v1/pki/crl/pem}

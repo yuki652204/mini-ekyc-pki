@@ -1,0 +1,14 @@
+# 秘密鍵・利用者データは絶対にコミットしない
+work/
+*.key
+private.pem
+
+# 環境ごとに生成される CA 証明書
+trust/*.crt
+
+# Java / IDE
+api/target/
+.idea/
+*.iml
+.vscode/
+.DS_Store

@@ -1,0 +1,28 @@
+# ミニ本人確認API — 学習用の模擬環境
+#   vault : 市役所（J-LIS役）。ルートCAの秘密鍵を内部に閉じ込めたまま証明書を発行・失効する
+#   api   : 本人確認API。持っているのは trust/ca.crt（印影見本）だけ
+services:
+  vault:
+    image: hashicorp/vault:1.18
+    command: server -dev
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root          # dev モード専用。本番では絶対に使わない
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://127.0.0.1:8200      # コンテナ内の vault CLI 用
+      VAULT_TOKEN: root
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+
+  api:
+    build: ./api
+    depends_on:
+      - vault
+    environment:
+      MINIEKYC_TRUST_ANCHOR_PATH: /trust/ca.crt
+      MINIEKYC_CRL_URL: http://vault:8200/v1/pki/crl/pem
+    volumes:
+      - ./trust:/trust:ro                    # ca.crt だけを読み取り専用で渡す
+    ports:
+      - "8080:8080"
