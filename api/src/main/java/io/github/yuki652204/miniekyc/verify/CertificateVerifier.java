@@ -1,9 +1,13 @@
 package io.github.yuki652204.miniekyc.verify;
 
-import io.github.yuki652204.miniekyc.crl.CrlProvider;
-import io.github.yuki652204.miniekyc.verify.VerificationException.Reason;
+import java.security.GeneralSecurityException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+
+import io.github.yuki652204.miniekyc.crl.CrlProvider;
+import io.github.yuki652204.miniekyc.verify.VerificationException.Reason;
 
 /**
  * ★ここがあなたの担当です★
@@ -38,8 +42,19 @@ public class CertificateVerifier {
      *   - ハンコ不一致 → Reason.UNTRUSTED_ISSUER / 期限外 → Reason.EXPIRED
      */
     public void checkIssuer(X509Certificate cert, Date now) {
-        // TODO ①
-        throw new UnsupportedOperationException("TODO ①: checkIssuer を実装してください");
+        // ハンコ照合：この証明書は市役所の公印で押されているか？
+        try {
+            cert.verify(trustAnchor.getPublicKey());
+        } catch (GeneralSecurityException e) {
+            throw new VerificationException(Reason.UNTRUSTED_ISSUER, "信頼するCAの署名ではありません", e);
+        }
+
+        // 期限チェック：今日は有効期限の中か？
+        try {
+            cert.checkValidity(now);
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            throw new VerificationException(Reason.EXPIRED, "有効期限外です", e);
+        }
     }
 
     /**

@@ -12,3 +12,7 @@ api/target/
 *.iml
 .vscode/
 .DS_Store
+
+.classpath
+.project
+.settings/
