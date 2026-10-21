@@ -7,8 +7,19 @@ cd "$(dirname "$0")/.."
 
 vault() { docker compose exec -T vault vault "$@"; }
 
+echo "▶ Vault の起動を待つ"
+for i in $(seq 1 30); do
+  if vault status >/dev/null 2>&1; then break; fi
+  if [ "$i" -eq 30 ]; then echo "❌ Vault が起動しません: docker compose logs vault を確認"; exit 1; fi
+  sleep 1
+done
+
 echo "▶ PKI エンジンを有効化"
-vault secrets enable pki >/dev/null 2>&1 || echo "  (有効化済み)"
+if vault secrets list | grep -q '^pki/'; then
+  echo "  (有効化済み)"
+else
+  vault secrets enable pki
+fi
 vault secrets tune -max-lease-ttl=87600h pki
 
 echo "▶ ルートCAを作成（秘密鍵は Vault 内部に保管）"
